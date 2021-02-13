@@ -1,9 +1,17 @@
 [package]
 name = "mootranscode"
 version = "0.4.0"
-authors = ["Sheldon Young <sheldon@softdev.ca>"]
 description = "Video and audio transcoding for Moodle"
+authors = ["Sheldon Young <sheldon@softdev.ca>"]
+license = "Apache-2.0"
+homepage = "https://github.com/softdevca/mootranscode"
+repository = "https://github.com/softdevca/mootranscode"
+#documentation = ""
 edition = "2018"
+keywords = ["Moodle", "transcode", "audio", "video"]
+categories = ["command-line-utilities", "encoding"]
+readme = "README.md"
+
 
 [dependencies]
 bb8 = "0.7"

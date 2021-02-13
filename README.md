@@ -1,9 +1,9 @@
 # mootranscode
 
-mootranscode replaces the uploaded version of video and audio files with
-transcoded versions that can play anywhere. This avoids students needing
-to be able to view every possible format, like requiring QuickTime for MOV
-files on Windows.
+Mootranscode provided local audio and video transcoding for Moodle. It
+replaces the uploaded version of video and audio files with transcoded
+versions that can play anywhere. This avoids students needing to be able to
+view every possible format, like requiring QuickTime for MOV files on Windows.
 
 The following conversions are currently done:
 
@@ -35,7 +35,7 @@ like `/usr/local/bin/`.
 
 To run the application as a service using systemd create a file called
 `/etc/systemd/system/mootranscode.service` substituting the name of the
-appropriate user.
+appropriate user:
 
 ```
 [Unit]
@@ -52,13 +52,13 @@ ExecStart=/usr/local/bin/mootranscode --repeat
 WantedBy=multi-user.target
 ```
 
-Start the service running using:
+Start the service using:
 
 ```
 # systemctl start mootranscode
 ```
 
-Enable the service to start at boot with
+Set the service to start a boot using:
 
 ```
 # systemctl enable mootranscode
@@ -100,5 +100,5 @@ limitations under the License.
 
 ## History
 
-2020-02-12 Published to GitHub.
-2020-02-09 Project started.
+- 2020-02-12 Published to GitHub.
+- 2020-02-09 Project started.

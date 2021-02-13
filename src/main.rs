@@ -286,7 +286,7 @@ async fn main() -> Result<(), Error> {
                     db_user_opt.unwrap_or("<none>"),
                     db_pass_opt
                         .map(|pass| "*".repeat(pass.len()))
-                        .unwrap_or("<none>".to_string())
+                        .unwrap_or_else(|| "<none>".to_string())
                 );
                 continue;
             }
@@ -377,7 +377,7 @@ async fn main() -> Result<(), Error> {
                 dest_extension = Path::new(&existing_transcode_row.filename)
                     .extension()
                     .map(|t| t.to_string_lossy().to_string())
-                    .unwrap_or("bin".to_string());
+                    .unwrap_or_else(|| "bin".to_string());
             } else {
                 // Transcode the file.
                 let conversion = conversions
@@ -442,7 +442,7 @@ async fn main() -> Result<(), Error> {
 
                 // Try a simple rename first and if that fails, such as when the move is across
                 // filesystems, revert to a basic copy and delete.
-                if let Err(_) = fs::rename(&temp_path, &dest_path) {
+                if fs::rename(&temp_path, &dest_path).is_err() {
                     trace!("\tmoving by copying");
                     io::copy(
                         &mut temp_file,

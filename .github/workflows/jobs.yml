@@ -70,5 +70,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          # Disabled so build succeeds while doing initial development when there are lots of warnings.
-          # args: -- -D warnings
+          args: -- -D warnings

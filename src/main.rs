@@ -41,7 +41,9 @@ use tokio::time::{self, Duration};
 use tokio_postgres::NoTls;
 use uuid::Uuid;
 
-const LOG_LEVEL: LevelFilter = LevelFilter::Trace;
+const APP_NAME: &str = crate_name!();
+
+const LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 
 const DEFAULT_DATADIR: &str = "/srv/moodle/data";
 const DEFAULT_DB_HOST: &str = "localhost";
@@ -140,7 +142,7 @@ async fn main() -> Result<(), Error> {
         .set_time_level(LevelFilter::Off)
         .set_thread_level(LevelFilter::Off)
         .set_target_level(LOG_LEVEL)
-        .add_filter_allow_str(crate_name!()) // tokio has a lot of logging to hide
+        .add_filter_allow_str(APP_NAME) // tokio has a lot of logging to hide
         .build();
     TermLogger::init(LOG_LEVEL, log_config.clone(), TerminalMode::Mixed).unwrap();
 
@@ -255,7 +257,7 @@ async fn main() -> Result<(), Error> {
     // Database connection configuration.
     let mut db_config_init = tokio_postgres::config::Config::new();
     let mut db_config = db_config_init
-        .application_name(crate_name!())
+        .application_name(APP_NAME)
         .dbname(db_name)
         .host(db_host)
         .port(db_port);
@@ -400,10 +402,9 @@ async fn main() -> Result<(), Error> {
                 }
 
                 // Temporary file that cannot be guessed.
-                let temp_filename =
-                    format!("{}-{}.{}", crate_name!(), Uuid::new_v4(), dest_extension);
+                let temp_filename = format!("{}-{}.{}", APP_NAME, Uuid::new_v4(), dest_extension);
                 let temp_path = std::env::temp_dir().join(&temp_filename);
-                trace!("Temporary file is {:?}", temp_path);
+                debug!("Temporary file is {:?}", temp_path);
 
                 let start_time = Instant::now();
 
@@ -443,7 +444,7 @@ async fn main() -> Result<(), Error> {
                 // Try a simple rename first and if that fails, such as when the move is across
                 // filesystems, revert to a basic copy and delete.
                 if fs::rename(&temp_path, &dest_path).is_err() {
-                    trace!("\tmoving by copying");
+                    trace!("Moving by copying");
                     io::copy(
                         &mut temp_file,
                         &mut File::open(&dest_path).expect("opening destination file"),
@@ -605,13 +606,14 @@ async fn main() -> Result<(), Error> {
             }
 
             // File activities assumes the lowest ID with the correct context id, component
-            // and file area is the one to use. The old file row ID will be be replaced
-            // with one much higer so the Moodle module picks up the right version of the file.
-            if filerow.component == "mod_resource" && filerow.filearea == "content" {
-                let new_id = filerow.id + 100000000;
-                let update_sql = format!("UPDATE {}files SET id=$1 WHERE ID=$2", db_prefix,);
+            // and file area is the one to use. The filearea will be changed so the transocded
+            // version of the file is selected for activities and forum attachments.
+            if (filerow.component == "mod_resource" && filerow.filearea == "content")
+                || (filerow.component == "mod_forum" && filerow.filearea == "attachment")
+            {
+                let update_sql = format!("UPDATE {}files SET filearea=$2 WHERE ID=$1", db_prefix,);
                 if let Err(error) = connection
-                    .execute(update_sql.as_str(), &[&new_id, &filerow.id])
+                    .execute(update_sql.as_str(), &[&filerow.id, &APP_NAME.to_string()])
                     .await
                 {
                     error!("Database error while updating resources: {}", error);
@@ -620,7 +622,7 @@ async fn main() -> Result<(), Error> {
             }
 
             trace!(
-                "\tdestination {:?} is {} bytes",
+                "Destination {:?} is {} bytes",
                 dest_filerow.filename,
                 dest_filesize
             );
@@ -650,7 +652,7 @@ impl FileRow {
     ) -> Result<ExitStatus, std::io::Error> {
         let source_path = hashed_path(&filedir_path, self.contenthash.as_str());
         let source_length = source_path.metadata()?.len();
-        trace!("\tsource file {:?} is {} bytes", source_path, source_length);
+        debug!("Source file {:?} is {} bytes", source_path, source_length);
 
         // Spawn the transcoder.
         let mut command_program = Command::new("ffmpeg");
@@ -663,7 +665,7 @@ impl FileRow {
             // TODO: Make max height configurable
             command_start
                 .args(&["-vf", "scale='-2':'1000'"]) // Maximum dimension
-                .args(&["-vcodec", "h264", "-acodec", "copy"])
+                .args(&["-vcodec", "h264"])
         } else if conversion.dest_content_type.starts_with("audio/") {
             command_start
                 .args(&["-vn"]) // Discard all video
@@ -686,7 +688,6 @@ impl FileRow {
 fn hashed_path(filedir_path: &PathBuf, hash: &str) -> PathBuf {
     filedir_path
         .clone()
-        .join("filedir")
         .join(&hash[0..2])
         .join(&hash[2..4])
         .join(&hash)

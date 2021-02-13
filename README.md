@@ -14,7 +14,7 @@ The MP4 versions of the files should work on any modern platform.
 
 ## Warning
 
-This was created as a one-off to solve a particular problem. Your milage may
+This was created as a one-off to solve a particular problem. Your mileage may
 vary but contributions are always very welcome.
 
 This application has only been tested with Moodle 3.10 running on Ubuntu with

@@ -1,12 +1,12 @@
 [package]
 name = "mootranscode"
-version = "0.4.0"
+version = "0.4.1"
 description = "Video and audio transcoding for Moodle"
 authors = ["Sheldon Young <sheldon@softdev.ca>"]
 license = "Apache-2.0"
 homepage = "https://github.com/softdevca/mootranscode"
 repository = "https://github.com/softdevca/mootranscode"
-#documentation = ""
+documentation = "https://docs.rs/mootranscode"
 edition = "2018"
 keywords = ["Moodle", "transcode", "audio", "video"]
 categories = ["command-line-utilities", "encoding"]
@@ -18,7 +18,8 @@ bb8 = "0.7"
 bb8-postgres = "0.7"
 clap = "2.33"
 futures = "0.3"
-log = { version = "0.4", features = ["max_level_trace", "release_max_level_debug"] }
+log = { version = "0.4" }
+#, features = ["max_level_trace", "release_max_level_debug"] }
 sha-1 = "0.9"
 simplelog = "0.9.0"
 uuid = { version = "0.8", features = ["v4"] }

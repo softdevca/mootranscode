@@ -1,0 +1,18 @@
+[package]
+name = "mootranscode"
+version = "0.3.0"
+authors = ["Sheldon Young <sheldon@softdev.ca>"]
+description = "Video and audio transcoding for Moodle"
+edition = "2018"
+
+[dependencies]
+bb8 = "0.7"
+bb8-postgres = "0.7"
+clap = "2.33"
+futures = "0.3"
+log = { version = "0.4", features = ["max_level_trace", "release_max_level_debug"] }
+sha-1 = "0.9"
+simplelog = "0.9.0"
+uuid = { version = "0.8", features = ["v4"] }
+tokio = { version  = "1.2", features = ["macros", "rt-multi-thread"] }
+tokio-postgres = "0.7"

@@ -705,7 +705,7 @@ fn to_hex_string(bytes: &[u8]) -> String {
 }
 
 /// Encode a path as a query, suitable for use in an HREF.
-fn encode_query(path: &String) -> String {
+fn encode_query(path: &str) -> String {
     // Just need the query part.
     let url = Url::parse(format!("http://example.com/?{}", path).as_str()).unwrap();
     return url.query().unwrap().to_string();

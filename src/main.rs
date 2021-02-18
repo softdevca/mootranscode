@@ -39,6 +39,7 @@ use std::{
 };
 use tokio::time::{self, Duration};
 use tokio_postgres::NoTls;
+use url::Url;
 use uuid::Uuid;
 
 const APP_NAME: &str = crate_name!();
@@ -567,10 +568,12 @@ async fn main() -> Result<(), Error> {
             }
 
             // Update the contents to point to the new file.
-            let path_to_replace = format!("@@PLUGINFILE@@/{}", filerow.filename);
-            let path_replacement = format!("@@PLUGINFILE@@/{}", dest_filerow.filename);
+            let path_to_replace = format!("@@PLUGINFILE@@/{}", encode_query(&filerow.filename));
+            let path_replacement =
+                format!("@@PLUGINFILE@@/{}", encode_query(&dest_filerow.filename));
 
             // Replace the references to the old files in the course content.
+            // FIXME: BROKEN WHEN SPACES IN FILENAMES %20
             let updates_sql = vec![
                 format!(
                     "UPDATE {}label
@@ -699,4 +702,11 @@ fn to_hex_string(bytes: &[u8]) -> String {
         write!(result, "{:02x}", byte).unwrap();
     }
     result
+}
+
+/// Encode a path as a query, suitable for use in an HREF.
+fn encode_query(path: &String) -> String {
+    // Just need the query part.
+    let url = Url::parse(format!("http://example.com/?{}", path).as_str()).unwrap();
+    return url.query().unwrap().to_string();
 }

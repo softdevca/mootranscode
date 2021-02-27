@@ -1,6 +1,6 @@
 [package]
 name = "mootranscode"
-version = "0.5.1"
+version = "0.6.0"
 description = "Video and audio transcoding for Moodle"
 authors = ["Sheldon Young <sheldon@softdev.ca>"]
 license = "Apache-2.0"

@@ -39,7 +39,6 @@ use std::{
 };
 use tokio::time::{self, Duration};
 use tokio_postgres::NoTls;
-use url::Url;
 use uuid::Uuid;
 
 const APP_NAME: &str = crate_name!();
@@ -485,10 +484,11 @@ async fn main() -> Result<(), Error> {
                 ..dest_filerow_tmp
             };
 
-            let time = SystemTime::now()
+            let time = (SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .unwrap()
-                .as_micros() as i64;
+                .as_millis()
+                / 100) as i64;
             let insert_sql = format!(
                 "insert into {}files (
                     contenthash,
@@ -704,9 +704,50 @@ fn to_hex_string(bytes: &[u8]) -> String {
     result
 }
 
+// From URITemplate.php in the Moodle source, plus space. Moodle has it's own list of
+// characters to escape that does not necessarily match standard URL query escaping.
+const ENCODE_QUERY_REPLACEMENTS: [(&str, &str); 18] = [
+    (" ", "%20"),
+    ("=", "%3D"),
+    (",", "%2C"),
+    ("!", "%21"),
+    ("@", "%40"),
+    ("|", "%7C"),
+    (":", "%3A"),
+    ("/", "%2F"),
+    ("?", "%3F"),
+    ("#", "%23"),
+    ("[", "%5B"),
+    ("]", "%5D"),
+    ("$", "%24"),
+    ("&", "%26"),
+    ("(", "%28"),
+    (")", "%29"),
+    ("*", "%2A"),
+    ("+", "%2B"),
+];
+
 /// Encode a path as a query, suitable for use in an HREF.
 fn encode_query(path: &str) -> String {
-    // Just need the query part.
-    let url = Url::parse(format!("http://example.com/?{}", path).as_str()).unwrap();
-    return url.query().unwrap().to_string();
+    let mut query = path.to_string();
+    for (suspect, replacement) in &ENCODE_QUERY_REPLACEMENTS {
+        query = query.replace(suspect, replacement);
+    }
+    query
+}
+
+#[cfg(test)]
+mod tests {
+    use super::encode_query;
+    use super::ENCODE_QUERY_REPLACEMENTS;
+
+    #[test]
+    fn test_encode_query() {
+        for (suspect, replacement) in &ENCODE_QUERY_REPLACEMENTS {
+            assert_eq!(
+                encode_query(format!("{}", suspect).as_str()),
+                replacement.to_string()
+            );
+        }
+    }
 }

@@ -650,8 +650,8 @@ impl FileRow {
     fn convert(
         &self,
         conversion: &Conversion,
-        filedir_path: &PathBuf,
-        temp_file: &PathBuf,
+        filedir_path: &Path,
+        temp_file: &Path,
     ) -> Result<ExitStatus, std::io::Error> {
         let source_path = hashed_path(&filedir_path, self.contenthash.as_str());
         let source_length = source_path.metadata()?.len();
@@ -688,9 +688,8 @@ impl FileRow {
     }
 }
 
-fn hashed_path(filedir_path: &PathBuf, hash: &str) -> PathBuf {
+fn hashed_path(filedir_path: &Path, hash: &str) -> PathBuf {
     filedir_path
-        .clone()
         .join(&hash[0..2])
         .join(&hash[2..4])
         .join(&hash)

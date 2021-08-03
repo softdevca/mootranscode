@@ -43,6 +43,10 @@ use uuid::Uuid;
 
 const APP_NAME: &str = crate_name!();
 
+/// Add an "mtr###-" to the start of the filename so it doesn't conflict with
+/// an existing file and create an identical "pathnamehash".
+const FILENAME_PREFIX: &str = "mtr-";
+
 const LOG_LEVEL: LevelFilter = LevelFilter::Warn;
 
 const DEFAULT_DATADIR: &str = "/srv/moodle/data";
@@ -96,7 +100,8 @@ struct FileRow {
 impl FileRow {
     /// There is no guarantee the transcoded file still exists.
     fn has_been_transcoded(&self) -> bool {
-        self.referencefileid.is_some()
+        // Skip filenames with the prefix to prevent transcoding the same file repeatedly.
+        self.referencefileid.is_some() || self.filename.starts_with(FILENAME_PREFIX)
     }
 
     /// Matches `get_pathname_hash` in the Moodle 3.10 source.
@@ -127,6 +132,12 @@ async fn main() -> Result<(), Error> {
             dest_extension: "mp4".to_string(),
         },
         // Video
+        Conversion { // Shrink and/or fix files in the "correct" format
+            source_content_type: "video/mp4".to_string(),
+            source_extension: "mp4".to_string(),
+            dest_content_type: "video/mp4".to_string(),
+            dest_extension: "mp4".to_string(),
+        },
         Conversion {
             source_content_type: "video/quicktime".to_string(),
             source_extension: "mov".to_string(),
@@ -198,6 +209,11 @@ async fn main() -> Result<(), Error> {
                 .help("Table name prefix"),
         )
         .arg(
+            Arg::with_name("dry-run")
+                .long("dry-run")
+                .help("Don't actually transcode"),
+        )
+        .arg(
             Arg::with_name("quiet")
                 .short("q")
                 .help("Messages are shown only when they are important"),
@@ -219,7 +235,7 @@ async fn main() -> Result<(), Error> {
         .get_matches();
 
     let filedir_path = Path::new(cli_matches.value_of("datadir").unwrap()).join("filedir");
-
+    let dry_run = cli_matches.occurrences_of("dry-run") > 0;
     let run_once = cli_matches.value_of("repeat").is_none();
     let delay = match cli_matches.value_of("repeat") {
         None => DEFAULT_DELAY_SECONDS,
@@ -274,7 +290,7 @@ async fn main() -> Result<(), Error> {
         Err(e) => panic!("Database connection pool error: {:?}", e),
     };
 
-    // Look for files to process then delay and try again.s
+    // Look for files to process then delay and try again.
     loop {
         let connection;
         match db_pool.get().await {
@@ -338,7 +354,7 @@ async fn main() -> Result<(), Error> {
             .iter()
             .filter(|row| {
                 row.has_been_transcoded()
-                    && filerows_by_id.contains_key(&row.referencefileid.unwrap())
+                    && row.referencefileid.map(|id| filerows_by_id.contains_key(&id)).unwrap_or(false)
             })
             .collect();
 
@@ -364,8 +380,7 @@ async fn main() -> Result<(), Error> {
 
             if let Some(already_converted) = filerows_transcodes
                 .iter()
-                .find(|row| row.id != filerow.id && row.contenthash == filerow.contenthash)
-            {
+                .find(|row| row.id != filerow.id && row.contenthash == filerow.contenthash) {
                 // Reuse an existing transcode if one already exists for another item.
                 let existing_transcode_row =
                     filerows_by_id[&already_converted.referencefileid.unwrap()];
@@ -390,7 +405,7 @@ async fn main() -> Result<(), Error> {
                 dest_extension = conversion.dest_extension.clone();
                 dest_content_type = conversion.dest_content_type.clone();
                 if verbosity > 1 {
-                    println!(
+                    print!(
                         "Transcoding {} from {} to {} ({})",
                         filerow.filename,
                         filerow.mimetype,
@@ -398,8 +413,14 @@ async fn main() -> Result<(), Error> {
                         conversion.dest_extension
                     );
                 } else if verbosity > 0 {
-                    println!("Transcoding {}", filerow.filename);
+                    print!("Transcoding {}", filerow.filename);
                 }
+
+                if dry_run {
+                    println!(" (dry run)");
+                    continue;
+                }
+                println!();
 
                 // Temporary file that cannot be guessed.
                 let temp_filename = format!("{}-{}.{}", APP_NAME, Uuid::new_v4(), dest_extension);
@@ -449,16 +470,15 @@ async fn main() -> Result<(), Error> {
                         &mut temp_file,
                         &mut File::open(&dest_path).expect("opening destination file"),
                     )
-                    .expect("copying to destination");
+                        .expect("copying to destination");
                     // TODO: Remove the temporary file even if the copy fails.
                     fs::remove_file(temp_path).expect("removing temporary file");
                 }
             }
 
-            // Add an "mtr###-" to the start of the filename so it doesn't conflict with
-            // an existing file and create an identicial pathnamehash.
             let dest_filename = format!(
-                "mtr-{}-{}",
+                "{}{}-{}",
+                FILENAME_PREFIX,
                 filerow.id,
                 Path::new(&filerow.filename)
                     .with_extension(dest_extension.clone())
@@ -614,7 +634,7 @@ async fn main() -> Result<(), Error> {
             if (filerow.component == "mod_resource" && filerow.filearea == "content")
                 || (filerow.component == "mod_forum" && filerow.filearea == "attachment")
             {
-                let update_sql = format!("UPDATE {}files SET filearea=$2 WHERE ID=$1", db_prefix,);
+                let update_sql = format!("UPDATE {}files SET filearea=$2 WHERE ID=$1", db_prefix, );
                 if let Err(error) = connection
                     .execute(update_sql.as_str(), &[&filerow.id, &APP_NAME.to_string()])
                     .await

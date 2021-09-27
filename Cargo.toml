@@ -21,7 +21,7 @@ futures = "0.3"
 log = { version = "0.4" }
 #, features = ["max_level_trace", "release_max_level_debug"] }
 sha-1 = "0.9"
-simplelog = "0.9.0"
+simplelog = "0.10.2"
 uuid = { version = "0.8", features = ["v4"] }
 tokio = { version  = "1.9", features = ["macros", "rt-multi-thread"] }
 tokio-postgres = "0.7"

@@ -20,7 +20,7 @@ clap = "2.33"
 futures = "0.3"
 log = { version = "0.4" }
 #, features = ["max_level_trace", "release_max_level_debug"] }
-sha-1 = "0.9"
+sha-1 = "0.10"
 simplelog = "0.11.2"
 uuid = { version = "0.8", features = ["v4"] }
 tokio = { version  = "1.16", features = ["macros", "rt-multi-thread"] }

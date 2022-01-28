@@ -37,6 +37,7 @@ use std::{
     process::ExitStatus,
     time::{SystemTime, UNIX_EPOCH},
 };
+use termcolor::ColorChoice;
 use tokio::time::{self, Duration};
 use tokio_postgres::NoTls;
 use uuid::Uuid;
@@ -61,7 +62,7 @@ const DEFAULT_VERBOSITY: u64 = 1;
 #[derive(Debug)]
 struct Conversion {
     source_content_type: String,
-    source_extension: String,
+    //source_extension: String,
     dest_content_type: String,
     dest_extension: String, // Also the ffmpeg format name
 }
@@ -127,20 +128,20 @@ async fn main() -> Result<(), Error> {
         // Audio
         Conversion {
             source_content_type: "audio/ogg".to_string(),
-            source_extension: "ogg".to_string(),
+            //source_extension: "ogg".to_string(),
             dest_content_type: "audio/mp4".to_string(),
             dest_extension: "mp4".to_string(),
         },
         // Video
         Conversion { // Shrink and/or fix files in the "correct" format
             source_content_type: "video/mp4".to_string(),
-            source_extension: "mp4".to_string(),
+            //source_extension: "mp4".to_string(),
             dest_content_type: "video/mp4".to_string(),
             dest_extension: "mp4".to_string(),
         },
         Conversion {
             source_content_type: "video/quicktime".to_string(),
-            source_extension: "mov".to_string(),
+            //source_extension: "mov".to_string(),
             dest_content_type: "video/mp4".to_string(),
             dest_extension: "mp4".to_string(),
         },
@@ -155,7 +156,7 @@ async fn main() -> Result<(), Error> {
         .set_target_level(LOG_LEVEL)
         .add_filter_allow_str(APP_NAME) // tokio has a lot of logging to hide
         .build();
-    TermLogger::init(LOG_LEVEL, log_config.clone(), TerminalMode::Mixed).unwrap();
+    TermLogger::init(LOG_LEVEL, log_config.clone(), TerminalMode::Mixed, ColorChoice::Auto).unwrap();
 
     // Parse the command line.
     let default_delay_str = &DEFAULT_DELAY_SECONDS.to_string();
@@ -673,7 +674,7 @@ impl FileRow {
         filedir_path: &Path,
         temp_file: &Path,
     ) -> Result<ExitStatus, std::io::Error> {
-        let source_path = hashed_path(&filedir_path, self.contenthash.as_str());
+        let source_path = hashed_path(filedir_path, self.contenthash.as_str());
         let source_length = source_path.metadata()?.len();
         debug!("Source file {:?} is {} bytes", source_path, source_length);
 

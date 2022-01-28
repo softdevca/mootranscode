@@ -100,5 +100,6 @@ limitations under the License.
 
 ## History
 
+- 2022-01-28 Version 0.8
 - 2020-02-12 Published to GitHub.
 - 2020-02-09 Project started.

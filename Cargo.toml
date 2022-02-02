@@ -1,6 +1,6 @@
 [package]
 name = "mootranscode"
-version = "0.8.0"
+version = "0.9.0"
 description = "Video and audio transcoding for Moodle"
 authors = ["Sheldon Young <sheldon@softdev.ca>"]
 license = "Apache-2.0"
@@ -12,11 +12,10 @@ keywords = ["Moodle", "transcode", "audio", "video"]
 categories = ["command-line-utilities", "encoding"]
 readme = "README.md"
 
-
 [dependencies]
 bb8 = "0.7"
 bb8-postgres = "0.7"
-clap = "2.33"
+clap = { version = "3.0", default-features = false, features = ["std", "cargo", "color", "env", "suggestions"] }
 futures = "0.3"
 log = { version = "0.4" }
 #, features = ["max_level_trace", "release_max_level_debug"] }

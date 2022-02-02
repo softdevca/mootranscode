@@ -17,7 +17,6 @@
 
 use bb8::Pool;
 use bb8_postgres::PostgresConnectionManager;
-use clap::{app_from_crate, crate_authors, crate_description, crate_name, crate_version, Arg};
 use core::fmt::Write;
 use log::{debug, error, trace, LevelFilter};
 use sha1::{Digest, Sha1};
@@ -37,6 +36,7 @@ use std::{
     process::ExitStatus,
     time::{SystemTime, UNIX_EPOCH},
 };
+use clap::{app_from_crate, crate_name, Arg};
 use termcolor::ColorChoice;
 use tokio::time::{self, Duration};
 use tokio_postgres::NoTls;
@@ -162,75 +162,75 @@ async fn main() -> Result<(), Error> {
     let default_delay_str = &DEFAULT_DELAY_SECONDS.to_string();
     let cli_matches = app_from_crate!()
         .arg(
-            Arg::with_name("datadir")
+            Arg::new("datadir")
                 .long("datadir")
                 .takes_value(true)
                 .default_value(DEFAULT_DATADIR)
                 .help("Location of the Moodle data directory"),
         )
         .arg(
-            Arg::with_name("dbhost")
+            Arg::new("dbhost")
                 .long("dbhost")
                 .takes_value(true)
                 .default_value(DEFAULT_DB_HOST)
                 .help("Database server hostname"),
         )
         .arg(
-            Arg::with_name("dbport")
+            Arg::new("dbport")
                 .long("dbport")
                 .takes_value(true)
                 .default_value(DEFAULT_DB_PORT)
                 .help("Database server port number"),
         )
         .arg(
-            Arg::with_name("dbname")
+            Arg::new("dbname")
                 .long("dbname")
                 .takes_value(true)
                 .default_value(DEFAULT_DB_NAME)
                 .help("Database name"),
         )
         .arg(
-            Arg::with_name("dbuser")
+            Arg::new("dbuser")
                 .long("dbuser")
                 .takes_value(true)
                 .default_value(DEFAULT_DB_USER)
                 .help("Database username"),
         )
         .arg(
-            Arg::with_name("dbpass")
+            Arg::new("dbpass")
                 .takes_value(true)
                 .long("dbpass")
                 .help("Database password"),
         )
         .arg(
-            Arg::with_name("dbprefix")
+            Arg::new("dbprefix")
                 .long("dbprefix")
                 .takes_value(true)
                 .default_value(DEFAULT_DB_PREFIX)
                 .help("Table name prefix"),
         )
         .arg(
-            Arg::with_name("dry-run")
+            Arg::new("dry-run")
                 .long("dry-run")
                 .help("Don't actually transcode"),
         )
         .arg(
-            Arg::with_name("quiet")
-                .short("q")
+            Arg::new("quiet")
+                .short('q')
                 .help("Messages are shown only when they are important"),
         )
         .arg(
-            Arg::with_name("repeat")
+            Arg::new("repeat")
                 .long("repeat")
-                .short("r")
+                .short('r')
                 .default_value(default_delay_str)
                 .takes_value(true)
                 .help("Continously poll for new files with this many seconds between"),
         )
         .arg(
-            Arg::with_name("verbose")
-                .short("v")
-                .multiple(true)
+            Arg::new("verbose")
+                .short('v')
+                .multiple_occurrences(true)
                 .help("Explain what is being done, can be specified multiple times"),
         )
         .get_matches();

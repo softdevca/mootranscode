@@ -36,7 +36,7 @@ use std::{
     process::ExitStatus,
     time::{SystemTime, UNIX_EPOCH},
 };
-use clap::{app_from_crate, crate_name, Arg};
+use clap::{command, crate_name, Arg};
 use termcolor::ColorChoice;
 use tokio::time::{self, Duration};
 use tokio_postgres::NoTls;
@@ -160,7 +160,7 @@ async fn main() -> Result<(), Error> {
 
     // Parse the command line.
     let default_delay_str = &DEFAULT_DELAY_SECONDS.to_string();
-    let cli_matches = app_from_crate!()
+    let cli_matches = command!()
         .arg(
             Arg::new("datadir")
                 .long("datadir")

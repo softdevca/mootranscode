@@ -50,13 +50,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bb8"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1627eccf3aa91405435ba240be23513eeca466b5dc33866422672264de061582"
+dependencies = [
+ "async-trait",
+ "futures-channel",
+ "futures-util",
+ "parking_lot 0.12.0",
+ "tokio",
+]
+
+[[package]]
 name = "bb8-postgres"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61fdf56d52b2cca401d2380407e5c35d3d25d3560224ecf74d6e4ca13e51239b"
 dependencies = [
  "async-trait",
- "bb8",
+ "bb8 0.7.1",
  "tokio",
  "tokio-postgres",
 ]
@@ -410,7 +423,7 @@ dependencies = [
 name = "mootranscode"
 version = "0.9.0"
 dependencies = [
- "bb8",
+ "bb8 0.8.0",
  "bb8-postgres",
  "clap",
  "futures",

@@ -293,9 +293,8 @@ async fn main() -> Result<(), Error> {
 
     // Look for files to process then delay and try again.
     loop {
-        let connection;
-        match db_pool.get().await {
-            Ok(con) => connection = con,
+        let connection = match db_pool.get().await {
+            Ok(con) => con,
             Err(error) => {
                 error!("Database connection error: {}", error);
                 debug!(
@@ -309,7 +308,7 @@ async fn main() -> Result<(), Error> {
                 );
                 continue;
             }
-        }
+        };
 
         // TODO: Can optimize by not redoing the processing there is nothing new.  Can
         // check the highest ID to see if it's higher than thelast go-around.

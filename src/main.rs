@@ -680,19 +680,19 @@ impl FileRow {
         // Spawn the transcoder.
         let mut command_program = Command::new("ffmpeg");
         let command_start = command_program
-            .args(&["-loglevel", "24"]) // Warnings
+            .args(["-loglevel", "24"]) // Warnings
             .arg("-y") // Overwrite without asking
             .arg("-i")
             .arg(source_path);
         let command_middle = if conversion.dest_content_type.starts_with("video/") {
             // TODO: Make max height configurable
             command_start
-                .args(&["-vf", "scale='-2':'1000'"]) // Maximum dimension
-                .args(&["-vcodec", "h264"])
+                .args(["-vf", "scale='-2':'1000'"]) // Maximum dimension
+                .args(["-vcodec", "h264"])
         } else if conversion.dest_content_type.starts_with("audio/") {
             command_start
-                .args(&["-vn"]) // Discard all video
-                .args(&["-b:a", "128k"]) // Bitrate
+                .args(["-vn"]) // Discard all video
+                .args(["-b:a", "128k"]) // Bitrate
         } else {
             return Err(std::io::Error::new(
                 ErrorKind::InvalidInput,
@@ -701,8 +701,8 @@ impl FileRow {
         };
 
         let command = command_middle
-            .args(&["-f", conversion.dest_extension.as_str()])
-            .arg(&temp_file);
+            .args(["-f", conversion.dest_extension.as_str()])
+            .arg(temp_file);
         trace!("Transcoding with command {:?}", command);
         command.status()
     }
@@ -712,7 +712,7 @@ fn hashed_path(filedir_path: &Path, hash: &str) -> PathBuf {
     filedir_path
         .join(&hash[0..2])
         .join(&hash[2..4])
-        .join(&hash)
+        .join(hash)
 }
 
 fn to_hex_string(bytes: &[u8]) -> String {
